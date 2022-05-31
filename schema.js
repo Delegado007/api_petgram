@@ -55,32 +55,32 @@ const typeDefs = gql`
   }
 `
 
-function checkIsUserLogged (context) {
-  const {email, id} = context
+function checkIsUserLogged(context) {
+  const { email, id } = context
   // check if the user is logged
   if (!id) throw new Error('you must be logged in to perform this action')
   // find the user and check if it exists
-  const user = userModel.find({email})
+  const user = userModel.find({ email })
   // if user doesnt exist, throw an error
   if (!user) throw new Error('user does not exist')
   return user
 }
 
-function tryGetFavsFromUserLogged (context) {
+function tryGetFavsFromUserLogged(context) {
   try {
-    const {email} = checkIsUserLogged(context)
-    const user = userModel.find({email})
+    const { email } = checkIsUserLogged(context)
+    const user = userModel.find({ email })
     return user.favs
-  } catch(e) {
+  } catch (e) {
     return []
   }
 }
 
 const resolvers = {
   Mutation: {
-    likeAnonymousPhoto: (_, {input}) => {
+    likeAnonymousPhoto: (_, { input }) => {
       // find the photo by id and throw an error if it doesn't exist
-      const {id: photoId} = input
+      const { id: photoId } = input
       const photo = photosModel.find({ id: photoId })
       if (!photo) {
         throw new Error(`Couldn't find photo with id ${photoId}`)
@@ -91,11 +91,24 @@ const resolvers = {
       const actualPhoto = photosModel.find({ id: photoId })
       return actualPhoto
     },
+    DontlikeAnonymousPhoto: (_, { input }) => {
+      // find the photo by id and throw an error if it doesn't exist
+      const { id: photoId } = input
+      const photo = photosModel.find({ id: photoId })
+      if (!photo) {
+        throw new Error(`Couldn't find photo with id ${photoId}`)
+      }
+      // put a like to the photo
+      photosModel.removeLike({ id: photoId })
+      // get the updated photos model
+      const actualPhoto = photosModel.find({ id: photoId })
+      return actualPhoto
+    },
     likePhoto: (_, { input }, context) => {
       const { id: userId } = checkIsUserLogged(context)
 
       // find the photo by id and throw an error if it doesn't exist
-      const {id: photoId} = input
+      const { id: photoId } = input
       const photo = photosModel.find({ id: photoId })
       if (!photo) {
         throw new Error(`Couldn't find photo with id ${photoId}`)
@@ -120,11 +133,11 @@ const resolvers = {
       return actualPhoto
     },
     // Handle user signup
-    async signup (_, { input }) {
+    async signup(_, { input }) {
       // add 1 second of delay in order to see loading stuff
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const {email, password} = input
+      const { email, password } = input
 
       const user = await userModel.find({ email })
 
@@ -146,7 +159,7 @@ const resolvers = {
     },
 
     // Handles user login
-    async login (_, { input }) {
+    async login(_, { input }) {
       // add 1 second of delay in order to see loading stuff
       await new Promise(resolve => setTimeout(resolve, 1000))
 
@@ -173,20 +186,20 @@ const resolvers = {
   },
   Query: {
     favs(_, __, context) {
-      const {email} = checkIsUserLogged(context)
-      const {favs} = userModel.find({email})
+      const { email } = checkIsUserLogged(context)
+      const { favs } = userModel.find({ email })
       return photosModel.list({ ids: favs, favs })
     },
     categories() {
       return categoriesModel.list()
     },
-    photo(_, {id}, context) {
+    photo(_, { id }, context) {
       const favs = tryGetFavsFromUserLogged(context)
-      return photosModel.find({id, favs})
+      return photosModel.find({ id, favs })
     },
-    photos(_, {categoryId}, context) {
+    photos(_, { categoryId }, context) {
       const favs = tryGetFavsFromUserLogged(context)
-      return photosModel.list({categoryId, favs})
+      return photosModel.list({ categoryId, favs })
     }
   }
 }
