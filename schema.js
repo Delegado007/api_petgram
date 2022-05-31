@@ -91,7 +91,7 @@ const resolvers = {
       const actualPhoto = photosModel.find({ id: photoId })
       return actualPhoto
     },
-    DontlikeAnonymousPhoto: (_, { input }) => {
+    dontlikeAnonymousPhoto: (_, { input }) => {
       // find the photo by id and throw an error if it doesn't exist
       const { id: photoId } = input
       const photo = photosModel.find({ id: photoId })
